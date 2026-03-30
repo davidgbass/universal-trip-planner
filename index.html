@@ -244,7 +244,51 @@
   .declined-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .dstat { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
 
-  /* ── FOOTER ── */
+  /* ── SEARCH ── */
+  .search-container {
+    position: relative; max-width: 520px; margin: 16px 32px 0;
+  }
+  .search-input-wrap {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1.5px solid var(--border2);
+    border-radius: 10px; padding: 10px 14px; transition: border-color .2s;
+  }
+  .search-input-wrap:focus-within { border-color: var(--gold); }
+  .search-icon { color: var(--muted); font-size: 15px; flex-shrink: 0; }
+  .search-input-wrap input {
+    flex: 1; border: none; background: none; outline: none;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text);
+  }
+  .search-input-wrap input::placeholder { color: var(--muted2); }
+  .search-suggestions {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: var(--surface); border: 1px solid var(--border2); border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 100; overflow: hidden;
+    list-style: none;
+  }
+  .search-suggestions li {
+    padding: 9px 14px; font-size: 12px; color: var(--text); cursor: pointer;
+    border-bottom: 1px solid var(--border); transition: background .12s;
+  }
+  .search-suggestions li:last-child { border-bottom: none; }
+  .search-suggestions li:hover { background: var(--surface2); }
+  .search-results { margin-top: 10px; }
+  .search-result-card {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 8px;
+    border-left: 3px solid var(--gold);
+  }
+  .sr-tab { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 5px; }
+  .sr-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 5px; }
+  .sr-desc { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+  .sr-goto {
+    font-size: 11px; font-weight: 500; color: var(--gold); background: var(--gold-dim);
+    border: 1px solid rgba(176,125,42,0.25); border-radius: 6px; padding: 4px 10px;
+    cursor: pointer; transition: background .15s; font-family: 'DM Sans', sans-serif;
+  }
+  .sr-goto:hover { background: rgba(176,125,42,0.2); }
+
+  @media(max-width: 600px) { .search-container { margin: 12px 16px 0; } }
   .footer { padding: 20px 32px; border-top: 1px solid var(--border); background: var(--surface); text-align: center; }
   .footer-text { font-size: 11px; color: var(--muted2); }
 </style>
@@ -269,6 +313,14 @@
     <span class="meta-pill">Surfside Inn &amp; Suites · Navette gratuite</span>
     <span class="meta-pill">Albert 53 po · Juliette 56.5 po</span>
   </div>
+  <div class="search-container">
+    <div class="search-input-wrap">
+      <span class="search-icon">🔍</span>
+      <input id="searchInput" type="text" placeholder="Chercher une attraction, un restaurant… (ex: Transformers, Mead Hall)" autocomplete="off" spellcheck="false">
+    </div>
+    <ul class="search-suggestions" id="searchSuggestions"></ul>
+  </div>
+  <div id="searchResults" style="margin:8px 0 0;"></div>
 </div>
 
 <div class="legend">
@@ -674,16 +726,16 @@
       <div class="tl-dot"></div>
       <div class="tl-content">
         <div class="tl-top">
-          <div><div class="tl-name">Dragon Racer's Rally + Fyre Drill</div><div class="tl-type">🐉💧 Manège interactif + bataille d'eau — Isle of Berk</div></div>
+          <div><div class="tl-name">Dragon Racer's Rally + Fyre Drill</div><div class="tl-type">🐉💧 Finir Isle of Berk en bloc — avant de bouger vers Dark Universe</div></div>
           <div class="expand-icon">▶</div>
         </div>
         <div class="tl-badges"><span class="chip all">Tous ensemble</span><span class="chip early">Early Entry</span><span class="chip" style="background:var(--blue-bg);color:var(--blue);border:1px solid rgba(107,163,224,0.25);">Émilie OK</span></div>
       </div>
     </div>
-    <div class="detail-panel"><div class="detail-inner"><div class="detail-desc">Les deux disponibles en Early Entry. Dragon Racer's Rally : levier de contrôle = intensité au choix, Albert va tourner au max. Fyre Drill : bataille d'eau en bateau, toute la famille incluant Émilie. Prévoir poncho — vous allez être mouillés. Profiter de ces deux manèges à files courtes pendant l'Early Entry avant que le parc ouvre au grand public à 9 h.</div></div></div>
+    <div class="detail-panel"><div class="detail-inner"><div class="detail-desc">On finit tout Isle of Berk avant de bouger — évite un aller-retour entre portails. Dragon Racer's Rally : levier de contrôle = intensité au choix, Albert va tourner au max. Fyre Drill : bataille d'eau en bateau, toute la famille incluant Émilie. Prévoir poncho — vous serez mouillés.</div></div></div>
 
-    <div class="tl-item" onclick="toggleItem(this)">
-      <div class="tl-time">9 h 45</div>
+    <div class="tl-item split3-row" onclick="toggleItem(this)">
+      <div class="tl-time">9 h 55</div>
       <div class="tl-dot"></div>
       <div class="tl-content">
         <div class="tl-top">
@@ -694,13 +746,27 @@
       </div>
     </div>
     <div class="detail-panel"><div class="detail-inner">
-      <div class="detail-desc">Papa + Juliette + Albert. Monsters Unchained n'est plus en Early Entry depuis février 2026 — il ouvre à 9 h avec le reste du public. Y aller dès l'ouverture officielle pour profiter des files encore courtes (10-30 min à l'ouverture). Véhicules KUKA, 14 animatroniques de niveau mondial, zéro écran, zéro inversion. 48 po — Albert OK. Ex-æquo #1 mondial dark rides 2025-2026.</div>
-      <div class="detail-emilie" style="margin-top:8px;"><b>Émilie seule :</b> décor gothique de Dark Universe à parcourir — cimetières, ruelles brumeuses, vitrines Universal Monsters classiques.</div>
+      <div class="detail-desc">Papa + Juliette + Albert. Direction Dark Universe après Isle of Berk. Monsters Unchained ouvre à 9 h — y arriver vers 9 h 55 pour des files encore courtes (10-30 min). Véhicules KUKA autonomes à travers le manoir de Frankenstein pendant une révolte de monstres menée par Dracula. 14 animatroniques parmi les plus avancés au monde — zéro écran, zéro inversion. 48 po — Albert OK. Ex-æquo #1 mondial dark rides 2025-2026.</div>
+      <div class="detail-emilie" style="margin-top:8px;"><b>Émilie :</b> son livre — décor gothique de Dark Universe spectaculaire — cimetières, ruelles brumeuses, architecture victorienne.</div>
+    </div></div>
+
+    <div class="tl-item split3-row" onclick="toggleItem(this)">
+      <div class="tl-time">9 h 45</div>
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <div class="tl-top">
+          <div><div class="tl-name">Monsters Unchained: The Frankenstein Experiment</div><div class="tl-type">🎭 Dark ride bras KUKA — 14 animatroniques — zéro écran — ouverture 9 h</div></div>
+          <div class="expand-icon">▶</div>
+        </div>
+        <div class="tl-badges"><span class="chip split3">Split 3+1</span><span class="chip" style="background:rgba(90,86,80,0.3);color:var(--muted);border:1px solid var(--border2);">0 inversion · 0 écran · Ouverture 9 h</span></div>
+      </div>
+    </div>
+    <div class="detail-panel"><div class="detail-inner">
+      <div class="detail-desc">Papa + Juliette + Albert. Monsters Unchained n'est plus en Early Entry — il ouvre à 9 h avec le grand public. Y aller vers 9 h 45 quand les files de Dragon Racer's Rally et Fyre Drill sont faites. Véhicules KUKA autonomes à travers le manoir de Frankenstein pendant une révolte de monstres menée par Dracula. 14 animatroniques parmi les plus avancés au monde — zéro écran, zéro inversion. 48 po — Albert OK. Ex-æquo #1 mondial dark rides 2025-2026 avec Battle at the Ministry. Durée ~5 min.</div>
+      <div class="detail-emilie" style="margin-top:8px;"><b>Émilie :</b> son livre — décor gothique de Dark Universe à explorer pendant ce temps — cimetières, ruelles brumeuses, architecture victorienne sombre.</div>
     </div></div>
 
   </div>
-
-  <!-- REPAS 3 -->
   <div class="tl-item food-row" style="margin:0 24px;border-radius:4px;border-bottom:1px solid var(--border);" onclick="toggleItem(this)">
     <div class="tl-time">11 h 00</div>
     <div class="tl-dot"></div>
@@ -799,23 +865,23 @@
         <div class="tl-badges"><span class="chip all">Tous ensemble</span></div>
       </div>
     </div>
-    <div class="detail-panel"><div class="detail-inner"><div class="detail-desc">5 Key Challenges pour gagner des clés et débloquer le combat contre Bowser Jr. (Shadow Showdown). Toute la zone est un jeu vidéo géant en réalité augmentée. Compter 30-45 min pour compléter les défis principaux. Battle at the Ministry étant fait le matin, l'après-midi est maintenant libre pour profiter pleinement de Nintendo World sans pression de file.</div></div></div>
+    <div class="detail-panel"><div class="detail-inner"><div class="detail-desc">5 Key Challenges pour gagner des clés et débloquer le combat contre Bowser Jr. (Shadow Showdown). Toute la zone est un jeu vidéo géant en réalité augmentée. Compter 30-45 min pour compléter les défis principaux.</div></div></div>
 
     <div class="tl-item" onclick="toggleItem(this)">
-      <div class="tl-time">15 h 00</div>
+      <div class="tl-time">14 h 45</div>
       <div class="tl-dot"></div>
       <div class="tl-content">
         <div class="tl-top">
-          <div><div class="tl-name">Ministry of Magic — retour et exploration</div><div class="tl-type">✨ Zone immersive · Paris années 1920 · Boutiques et sorts</div></div>
+          <div><div class="tl-name">Ministry of Magic — retour et exploration</div><div class="tl-type">✨ Paris années 1920 · Sorts de baguette · Boutiques</div></div>
           <div class="expand-icon">▶</div>
         </div>
         <div class="tl-badges"><span class="chip all">Tous ensemble</span><span class="chip" style="background:var(--blue-bg);color:var(--blue);border:1px solid rgba(107,163,224,0.25);">Émilie OK</span></div>
       </div>
     </div>
-    <div class="detail-panel"><div class="detail-inner"><div class="detail-desc">Retourner dans Ministry of Magic pour explorer tranquillement — vous aviez sprinté au matin, maintenant vous pouvez apprécier le décor Paris 1920, les sorts de baguette interactive dans les ruelles de Place Cachée, les vitrines et boutiques thématiques. Butterbeer Crème Brûlée au Café L'air de la Sirène pour une pause méritée. Le décor est magnifique sans la pression du matin.</div></div></div>
+    <div class="detail-panel"><div class="detail-inner"><div class="detail-desc">Retourner dans Ministry of Magic pour explorer tranquillement — vous aviez sprinté au matin. Décor Paris 1920, sorts de baguette interactive dans les ruelles de Place Cachée, boutiques. Butterbeer Crème Brûlée au Café L'air de la Sirène pour une pause méritée. ~30 min.</div></div></div>
 
     <div class="tl-item" onclick="toggleItem(this)">
-      <div class="tl-time">15 h 45</div>
+      <div class="tl-time">15 h 15</div>
       <div class="tl-dot"></div>
       <div class="tl-content">
         <div class="tl-top">
@@ -825,13 +891,13 @@
         <div class="tl-badges"><span class="chip all">Tous ensemble</span><span class="chip" style="background:var(--blue-bg);color:var(--blue);border:1px solid rgba(107,163,224,0.25);">Émilie OK</span></div>
       </div>
     </div>
-    <div class="detail-panel"><div class="detail-inner"><div class="detail-desc">Hiccup, Toothless, Astrid et Gobber résolvent le mystère d'un dragon indressable. Dragons animatroniques de la taille d'une voiture. Effets visuels époustouflants. Assis dans un théâtre, aucun mouvement. Arriver 15 min avant. C'est le show Indiana Jones du parc. Avancé d'une heure grâce à Battle at the Ministry fait le matin.</div></div></div>
+    <div class="detail-panel"><div class="detail-inner"><div class="detail-desc">Hiccup, Toothless, Astrid et Gobber résolvent le mystère d'un dragon indressable. Dragons animatroniques de la taille d'une voiture — le "wow animatronic" du parc. Assis dans un théâtre climatisé, aucun mouvement. Arriver 10-15 min avant pour bonnes places.</div></div></div>
 
   </div>
 
   <!-- REPAS 4 -->
   <div class="tl-item food-row" style="margin:0 24px;border-radius:4px;border-bottom:1px solid var(--border);" onclick="toggleItem(this)">
-    <div class="tl-time">16 h 45</div>
+    <div class="tl-time">16 h 00</div>
     <div class="tl-dot"></div>
     <div class="tl-content">
       <div class="tl-top">
@@ -841,12 +907,12 @@
       <div class="tl-badges"><span class="chip all">Tous ensemble</span><span class="chip food">🍽 Repas</span></div>
     </div>
   </div>
-  <div class="detail-panel"><div class="detail-inner"><div class="detail-desc">Dernier repas du séjour — plus tôt qu'avant grâce au temps récupéré le matin. Stardust Racers de nuit et fontaines après le souper.</div></div></div>
+  <div class="detail-panel"><div class="detail-inner"><div class="detail-desc">45 min — Fountain show et Stardust Racers de nuit après le souper.</div></div></div>
 
   <div class="resto-block">
     <div class="resto-header">
-      <div class="resto-title-bar">🍽️ Repas 4 — Souper vers 16 h 45 · Epic Universe · Clôture du séjour</div>
-      <div class="resto-subtitle">Budget estimé 60–95 $ pour 4 · Stardust de nuit + fontaines après</div>
+      <div class="resto-title-bar">🍽️ Repas 4 — Souper vers 16 h · Epic Universe · Clôture du séjour</div>
+      <div class="resto-subtitle">Budget estimé 60–95 $ pour 4 · Fountain show + Stardust de nuit après</div>
     </div>
     <div class="resto-options">
       <div class="resto-opt" onclick="toggleResto(this)">
@@ -855,7 +921,7 @@
         <div class="resto-opt-loc">Celestial Park · Vue sur les fontaines · Mobile order</div>
         <div class="resto-opt-price price-simple">~60–75 $ pour 4 · Rapide · Vue nocturne</div>
       </div>
-      <div class="resto-detail"><div class="resto-detail-text">Pizza Moon prépare ses pizzas au four à bois — qualité nettement au-dessus de n'importe quelle pizza en parcs à thème, comparée à Via Napoli à EPCOT. Margherita, Pepperoni, options variées. Terrasse avec vue sur Celestial Park illuminé. Idéal si tout le monde est épuisé et veut manger sans réfléchir.</div></div>
+      <div class="resto-detail"><div class="resto-detail-text">Pizza Moon prépare ses pizzas au four à bois — qualité nettement au-dessus de n'importe quelle pizza en parcs à thème. Terrasse avec vue sur Celestial Park illuminé. Idéal si tout le monde est épuisé et veut manger sans réfléchir.</div></div>
 
       <div class="resto-opt" onclick="toggleResto(this)">
         <div class="resto-opt-tag tag-sante">🥗 Option santé / vert</div>
@@ -863,15 +929,15 @@
         <div class="resto-opt-loc">Ministry of Magic · Paris années 1920 · Terrasse</div>
         <div class="resto-opt-price price-sante">~75–90 $ pour 4 · Option la plus légère du séjour</div>
       </div>
-      <div class="resto-detail"><div class="resto-detail-text">Quiche Lorraine (~16 $) : egg custard aérien, lard fumé, gruyère, Mornay sauce, servie avec salade maison. Salade Niçoise : thon, œufs, haricots verts, olives — l'option la plus fraîche et légère du parc. Les enfants : Croque-Monsieur. Dîner en terrasse dans les rues de Place Cachée.</div></div>
+      <div class="resto-detail"><div class="resto-detail-text">Quiche Lorraine (~16 $) : egg custard aérien, lard fumé, gruyère, Mornay sauce. Salade Niçoise : thon, œufs, haricots verts, olives. Les enfants : Croque-Monsieur. Dîner en terrasse dans les rues de Place Cachée.</div></div>
 
       <div class="resto-opt" onclick="toggleResto(this)">
         <div class="resto-opt-tag tag-immersif">✨ Option immersive</div>
-        <div class="resto-opt-name">Café L'air de la Sirène — Boeuf Bourguignon en terrasse</div>
+        <div class="resto-opt-name">Café L'air de la Sirène — Baguette de Dinde en terrasse</div>
         <div class="resto-opt-loc">Ministry of Magic · Le plus beau cadre de repas du resort</div>
         <div class="resto-opt-price price-immersif">~80–95 $ pour 4 · Pas de réservation</div>
       </div>
-      <div class="resto-detail"><div class="resto-detail-text">Baguette de Dinde (dinde, brie, arugula, moutarde au beurre, baguette croustillante, ~17 $). Dîner en terrasse dans les rues pavées de Place Cachée avec architecture Art Déco des années 1920. La salle intérieure a des mosaïques avec créatures fantastiques cachées dans les tuiles et une tour de 2000 choux à la crème décoratifs. Terminer avec le Butterbeer Crème Brûlée exclusif.</div></div>
+      <div class="resto-detail"><div class="resto-detail-text">Baguette de Dinde (dinde, brie, arugula, moutarde au beurre, baguette croustillante, ~17 $). Terrasse dans les rues pavées de Place Cachée, architecture Art Déco 1920, mosaïques avec créatures fantastiques. Terminer avec le Butterbeer Crème Brûlée exclusif.</div></div>
 
       <div class="resto-opt" onclick="toggleResto(this)" style="background:rgba(232,184,75,0.04);">
         <div class="resto-opt-tag tag-best">⭐ Notre meilleure suggestion</div>
@@ -879,25 +945,39 @@
         <div class="resto-opt-loc">Ministry of Magic · Clôture parfaite du voyage</div>
         <div class="resto-opt-price price-best">~80–95 $ pour 4 · Butterbeer Crème Brûlée en dessert</div>
       </div>
-      <div class="resto-detail"><div class="resto-detail-text">Notre best pour clore le séjour : repas léger (vous avez Stardust de nuit après), ambiance imbattable dans Paris magique, cuisine authentique française. Quiche Lorraine et Baguette de Dinde sont les deux plats les mieux cotés du café. Terminer avec le Butterbeer Crème Brûlée partagé — exclusivité dessert du séjour entier. Puis : Stardust de nuit → fontaines → Frosty Moon ice cream → photo de famille finale.</div></div>
+      <div class="resto-detail"><div class="resto-detail-text">Repas léger (Stardust de nuit après), ambiance Paris magique imbattable, cuisine française authentique. Quiche Lorraine et Baguette de Dinde = les deux plats les mieux cotés du café. Terminer avec le Butterbeer Crème Brûlée partagé — exclusivité dessert du séjour entier. Puis : fountain show → Stardust de nuit → fontaines → Frosty Moon → photo de famille finale.</div></div>
     </div>
   </div>
 
   <div class="timeline">
-    <div class="tl-item split3-row" onclick="toggleItem(this)">
-      <div class="tl-time">18 h 30</div>
+
+    <div class="tl-item parade-row" onclick="toggleItem(this)">
+      <div class="tl-time">17 h 30</div>
       <div class="tl-dot"></div>
       <div class="tl-content">
         <div class="tl-top">
-          <div><div class="tl-name">Stardust Racers — de nuit</div><div class="tl-type">🎢 Coaster dual-launch — expérience nocturne unique</div></div>
+          <div><div class="tl-name">Fountain Show — Celestial Park</div><div class="tl-type">🌊 Show fontaines son et lumières — ~10 min — plusieurs fois en soirée</div></div>
           <div class="expand-icon">▶</div>
         </div>
-        <div class="tl-badges"><span class="chip split3">Split 3+1</span><span class="chip" style="background:rgba(90,86,80,0.3);color:var(--muted);border:1px solid var(--border2);">0 inversion · 48 po</span></div>
+        <div class="tl-badges"><span class="chip all">Tous ensemble</span><span class="chip" style="background:var(--blue-bg);color:var(--blue);border:1px solid rgba(107,163,224,0.25);">Émilie OK</span></div>
+      </div>
+    </div>
+    <div class="detail-panel"><div class="detail-inner"><div class="detail-desc">Show de fontaines chorégraphié avec son et lumières dans Celestial Park — Apollo cède la place à la déesse Luna pour la nuit. ~10 min, plusieurs représentations en soirée (typiquement 17 h 30, 19 h 30, 20 h 20). Gratuit, inclus dans votre billet. Vérifier les horaires exacts dans l'app Universal le jour même. Note : un vrai spectacle nocturne avec feux d'artifice ("Universal Celestial Goodnight") est en développement mais pas encore confirmé pour avril 2026.</div></div></div>
+
+    <div class="tl-item split3-row" onclick="toggleItem(this)">
+      <div class="tl-time">18 h 00</div>
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <div class="tl-top">
+          <div><div class="tl-name">Stardust Racers — de nuit ★</div><div class="tl-type">🎢 Coaster dual-launch — expérience nocturne unique — UNIQUEMENT le soir</div></div>
+          <div class="expand-icon">▶</div>
+        </div>
+        <div class="tl-badges"><span class="chip split3">Split 3+1</span><span class="chip prio">★ Soir seulement</span><span class="chip" style="background:rgba(90,86,80,0.3);color:var(--muted);border:1px solid var(--border2);">0 inversion · 48 po</span></div>
       </div>
     </div>
     <div class="detail-panel"><div class="detail-inner">
-      <div class="detail-desc">Papa + Juliette + Albert. Deux trains lancés simultanément à 100 km/h sur 5000 pieds. Zéro inversion. La nuit avec le parc illuminé en dessous est une expérience complètement différente. 48 po — Albert OK. Détecteur de métal — casiers gratuits sur place. Retirer la Power-Up Band avant.</div>
-      <div class="detail-emilie" style="margin-top:8px;"><b>Émilie seule :</b> fontaines de Celestial Park avec show son et lumières — Hôtel Helios en arrière-plan, le plus beau spot photo du resort.</div>
+      <div class="detail-desc">Papa + Juliette + Albert. Deux trains lancés simultanément à 100 km/h sur 5000 pieds avec le parc illuminé en dessous — les lumières à bord des trains créent l'effet de comètes filant dans la nuit. Zéro inversion. 48 po — Albert OK. Détecteur de métal — casiers gratuits sur place. Retirer la Power-Up Band avant d'embarquer.</div>
+      <div class="detail-emilie" style="margin-top:8px;"><b>Émilie :</b> son livre devant les fontaines illuminées de Celestial Park — Hôtel Helios en arrière-plan, le plus beau spot photo du resort.</div>
     </div></div>
 
     <div class="tl-item" onclick="toggleItem(this)">
@@ -905,13 +985,13 @@
       <div class="tl-dot"></div>
       <div class="tl-content">
         <div class="tl-top">
-          <div><div class="tl-name">Fontaines de Celestial Park + Frosty Moon</div><div class="tl-type">✨ Fin de voyage — photo de famille</div></div>
+          <div><div class="tl-name">Fontaines + Frosty Moon ice cream</div><div class="tl-type">✨ Fin de voyage — photo de famille</div></div>
           <div class="expand-icon">▶</div>
         </div>
         <div class="tl-badges"><span class="chip all">Tous ensemble</span></div>
       </div>
     </div>
-    <div class="detail-panel"><div class="detail-inner"><div class="detail-desc">Frosty Moon sert de la crème glacée après la fermeture. S'asseoir devant les fontaines illuminées — Chronos et Hôtel Helios en arrière-plan. Le meilleur moment pour la photo de famille du voyage.</div></div></div>
+    <div class="detail-panel"><div class="detail-inner"><div class="detail-desc">Frosty Moon sert de la crème glacée après la fermeture. S'asseoir devant les fontaines — Chronos et Hôtel Helios en arrière-plan. Le meilleur moment pour la photo de famille du voyage.</div></div></div>
   </div>
 
 </div><!-- fin j2 -->
@@ -919,10 +999,475 @@
 <!-- ═══════════════════ DECLINED ═══════════════════ -->
 <div id="tab-declined" class="tab-pane">
   <div class="declined-section">
-    <div class="declined-title">Attractions déclinées — et pourquoi</div>
-    <div class="declined-intro">Ces attractions existent aux deux parcs mais ont été exclues de votre programme pour des raisons précises. Cliquez sur chaque carte pour comprendre le raisonnement derrière la décision.</div>
+    <div class="declined-title">Toutes les attractions non retenues</div>
+    <div class="declined-intro">Chaque attraction disponible aux 3 parcs que vous ne ferez pas, avec la raison. Cliquez pour les détails. Les badges de couleur indiquent la catégorie de raison.</div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+      <span class="declined-reason-badge reason-inversion" style="padding:4px 10px;">Inversions</span>
+      <span class="declined-reason-badge reason-motion" style="padding:4px 10px;">Simulateur / mal de cœur</span>
+      <span class="declined-reason-badge reason-taille" style="padding:4px 10px;">Taille requise</span>
+      <span class="declined-reason-badge reason-ferme" style="padding:4px 10px;">Fermé</span>
+      <span class="declined-reason-badge reason-skip" style="padding:4px 10px;">Hors profil / remplacé</span>
+    </div>
 
     <div class="declined-grid">
+
+      <!-- ── ISLANDS OF ADVENTURE ── -->
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">VelociCoaster</div><div class="declined-park">Islands of Adventure — Jurassic World</div></div>
+          <span class="declined-reason-badge reason-inversion">4 inversions</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Un des meilleurs coasters au monde — dual-launch à 112 km/h, top hat à 47 mètres, barrel roll au-dessus du lagon. Mais 4 inversions dont un zero-g stall et un twist. Vous avez exclu les inversions. Albert est aussi sous la limite de 54 po. Si David veut le faire seul un soir ou avec Juliette sans Albert, c'est une option — mais ce n'est pas une priorité avec ce profil.</div>
+          <div class="declined-stats"><span class="dstat">54 po requis</span><span class="dstat">112 km/h</span><span class="dstat">4 inversions</span><span class="dstat">Albert trop petit</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">The Incredible Hulk Coaster</div><div class="declined-park">Islands of Adventure — Marvel</div></div>
+          <span class="declined-reason-badge reason-inversion">7 inversions</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Coaster à launch 0-107 km/h en 2 secondes avec 7 inversions — cobra roll, vertical loop, corkscrew. Le plus intense du resort. Albert sous la limite de 54 po. G-forces parmi les plus élevées d'Orlando. Même sans les inversions, la limite de taille le rend inaccessible pour Albert. Aucune raison de l'intégrer.</div>
+          <div class="declined-stats"><span class="dstat">54 po requis</span><span class="dstat">107 km/h</span><span class="dstat">7 inversions</span><span class="dstat">Albert trop petit</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Harry Potter and the Forbidden Journey</div><div class="declined-park">Islands of Adventure — Hogsmeade</div></div>
+          <span class="declined-reason-badge reason-motion">Pire simulateur du resort</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Dark ride sur bras robotique KUKA — vous soarez au-dessus de Poudlard, suivez Harry, rencontrez des Détraqueurs et des Araignées géantes. Technologiquement impressionnant, mais unanimement coté #1 cause de mal de cœur à Universal. Émilie a eu des problèmes sur Slinky Dog Dash — Forbidden Journey est dans une catégorie incomparablement plus intense. Exclu définitivement.</div>
+          <div class="declined-stats"><span class="dstat">42 po requis</span><span class="dstat">Bras KUKA multi-axes</span><span class="dstat">#1 cause mal de cœur resort</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">The Amazing Adventures of Spider-Man</div><div class="declined-park">Islands of Adventure — Marvel</div></div>
+          <span class="declined-reason-badge reason-skip">Remplacé par Transformers</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Dark ride hybride pionnier (1999) — véhicule simulateur + décors physiques + écrans 3D + effets 4D. Technologie identique à Transformers mais plus ancienne. Visuels moins sharp, intensité moindre. Pour votre profil "plus récent = mieux", Transformers l'emporte. Spider-Man reste excellent — si vous avez 30 min libres en fin de Jour 1 via Express, ça vaut le coup. Limite 40 po — Albert OK.</div>
+          <div class="declined-stats"><span class="dstat">40 po requis</span><span class="dstat">Ouvert 1999</span><span class="dstat">Remplacé par Transformers (2013)</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Jurassic Park River Adventure</div><div class="declined-park">Islands of Adventure — Jurassic Park</div></div>
+          <span class="declined-reason-badge reason-ferme">Fermé jan–nov 2026</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Manège de bateaux classique avec drop de 26 mètres — le plus grand du monde à l'époque. Parcours Jurassic Park, T-Rex en animatronique, chute finale massive. Fermé pour rénovation complète du 5 janvier au 19 novembre 2026. Réouverture prévue en thème Jurassic World. Ne sera pas disponible le 4 avril.</div>
+          <div class="declined-stats"><span class="dstat">42 po requis</span><span class="dstat">Fermé jan–nov 2026</span><span class="dstat">Réouverture nov 2026</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Pteranodon Flyers</div><div class="declined-park">Islands of Adventure — Jurassic Park</div></div>
+          <span class="declined-reason-badge reason-skip">Pire rapport attente/durée</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Manège suspendu sous un ptéranodone — vol lent au-dessus de Jurassic Park. 75 secondes de trajet pour 45–60 min d'attente typique. Capacité si faible que les files ne bougent presque pas. Rien de technologiquement remarquable. Les adultes seuls ne peuvent pas embarquer sans enfant. Valeur nulle comparée au reste de votre programme.</div>
+          <div class="declined-stats"><span class="dstat">75 secondes de trajet</span><span class="dstat">45–60 min d'attente</span><span class="dstat">Adultes seuls interdits</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Doctor Doom's Fearfall</div><div class="declined-park">Islands of Adventure — Marvel</div></div>
+          <span class="declined-reason-badge reason-skip">Hors profil</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Tour de chute libre thématisée Marvel — montée à 43 mètres, chute libre. Concept simple, aucun aspect narratif ou technologique avancé. Émilie ne monte pas. Albert pourrait trouver ça fun — mais vous préférez les expériences immersives et narratives. Ce slot est bien mieux utilisé par Spider-Man ou Skull Island.</div>
+          <div class="declined-stats"><span class="dstat">40 po requis</span><span class="dstat">43 mètres</span><span class="dstat">Pas narratif ni immersif</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Storm Force Accelartron</div><div class="declined-park">Islands of Adventure — Marvel</div></div>
+          <span class="declined-reason-badge reason-skip">Manège spinning basique</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Manège familial spinning à thème X-Men — on tourne en contrôlant la vitesse de rotation via un volant. Concept simple, technologie datée, aucune immersion narrative poussée. Remplacé dans votre horaire par des expériences bien supérieures. Zéro perte.</div>
+          <div class="declined-stats"><span class="dstat">Manège spinning familial</span><span class="dstat">Technologie basique</span><span class="dstat">Files raisonnables mais pas de valeur</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Dudley Do-Right's Ripsaw Falls</div><div class="declined-park">Islands of Adventure — Toon Lagoon</div></div>
+          <span class="declined-reason-badge reason-skip">Hors profil</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Log flume classique avec un drop de 23 mètres — vous serez trempés. Thème cartoon des années 60, aucun intérêt narratif pour votre famille. Le profil recherche des expériences 3D et immersives — ce type de manège à eau n'apporte rien que Fyre Drill ne couvre déjà, avec en prime l'immersion Isle of Berk.</div>
+          <div class="declined-stats"><span class="dstat">Drop 23 mètres</span><span class="dstat">Thème daté</span><span class="dstat">Remplacé par Fyre Drill</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Popeye & Bluto's Bilge-Rat Barges</div><div class="declined-park">Islands of Adventure — Toon Lagoon</div></div>
+          <span class="declined-reason-badge reason-skip">Hors profil</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Rapides en radeau — vous allez être complètement trempés sans filet. Thème Popeye, aucun aspect technologique ou narratif intéressant. Même catégorie que Dudley Do-Right mais encore moins immersif. Fyre Drill dans Isle of Berk offre une expérience de bataille d'eau nettement plus fun et thématisée.</div>
+          <div class="declined-stats"><span class="dstat">Radeau sur rapides</span><span class="dstat">Très mouillant</span><span class="dstat">Thème sans intérêt</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">The Cat in the Hat</div><div class="declined-park">Islands of Adventure — Seuss Landing</div></div>
+          <span class="declined-reason-badge reason-skip">Trop jeune pour votre famille</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Dark ride familial doux — vous suivez le Chat dans le Chapeau dans des décors Dr. Seuss colorés. Conçu pour les très jeunes enfants. Albert (7 ans) et Juliette (9 ans) ont déjà dépassé ce niveau. Aucun aspect technologique avancé ni narratif engageant pour votre groupe. Pas une perte.</div>
+          <div class="declined-stats"><span class="dstat">Dark ride familial très doux</span><span class="dstat">Conçu enfants 2–5 ans</span><span class="dstat">Aucune technologie avancée</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">One Fish, Two Fish, Red Fish, Blue Fish</div><div class="declined-park">Islands of Adventure — Seuss Landing</div></div>
+          <span class="declined-reason-badge reason-skip">Trop jeune pour votre famille</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Manège de poissons volants qui montent et descendent pendant que vous esquivez des jets d'eau. Conçu pour les tout-petits. Albert et Juliette sont clairement au-delà de ce type d'attraction. Aucun intérêt à inclure dans votre programme serré.</div>
+          <div class="declined-stats"><span class="dstat">Manège très familial</span><span class="dstat">Enfants 2–6 ans</span><span class="dstat">Jets d'eau au sol</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">High in the Sky Seuss Trolley Train</div><div class="declined-park">Islands of Adventure — Seuss Landing</div></div>
+          <span class="declined-reason-badge reason-skip">Trop jeune / faible intérêt</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Train monorail lent au-dessus de Seuss Landing avec narration des histoires Dr. Seuss. Joli pour les tout-petits, sans intérêt réel pour Albert et Juliette. Durée raisonnable mais aucune valeur ajoutée à votre programme.</div>
+          <div class="declined-stats"><span class="dstat">Train lent</span><span class="dstat">Vue aérienne de Seuss Landing</span><span class="dstat">Enfants 2–7 ans</span></div>
+        </div>
+      </div>
+
+      <!-- ── UNIVERSAL STUDIOS FLORIDA ── -->
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">The Simpsons Ride</div><div class="declined-park">Universal Studios Florida — Springfield</div></div>
+          <span class="declined-reason-badge reason-motion">Simulateur écrasant</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Simulateur grand format sur écran IMAX wrap-around — vous êtes dans un parc d'attractions de Springfield avec les Simpsons. Techniquement intéressant, mais régulièrement cité comme le deuxième manège le plus nauséabond du resort après Forbidden Journey. L'écran immense amplifie les mouvements du simulateur. Faible intérêt narratif comparé à vos dark rides HP. Pas une perte.</div>
+          <div class="declined-stats"><span class="dstat">40 po requis</span><span class="dstat">Simulateur IMAX wrap-around</span><span class="dstat">2e plus nauséabond du resort</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">MIB: Alien Attack</div><div class="declined-park">Universal Studios Florida</div></div>
+          <span class="declined-reason-badge reason-skip">Technologie datée</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Dark ride interactif — pistolet laser pour abattre des aliens dans les rues de New York avec Will Smith. Score individuel à la fin — concept fun, mais les sets sont en carton-pâte, aucune 3D ni simulation avancée. Ouvert en 1999, aucune mise à jour majeure. Pour votre profil 3D/technologique, c'est le bas du tableau. Remplacé avantageusement par Transformers et Bourne Stuntacular.</div>
+          <div class="declined-stats"><span class="dstat">40 po requis</span><span class="dstat">Ouvert 1999</span><span class="dstat">Laser blaster, pas de 3D</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Despicable Me Minion Mayhem</div><div class="declined-park">Universal Studios Florida — Minion Land</div></div>
+          <span class="declined-reason-badge reason-motion">Simulateur — Émilie</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Simulateur familial — vous êtes transformés en Minions par Gru dans un grand écran dôme. Technologie motion simulator full dôme — même type que Forbidden Journey mais beaucoup plus doux. Albert et Juliette pourraient l'apprécier, mais l'immersion est faible et la file souvent longue. Sans Express vous perdrez 30-45 min. Avec Express ça passe, mais d'autres attractions méritent ce slot.</div>
+          <div class="declined-stats"><span class="dstat">40 po requis</span><span class="dstat">Simulateur dôme doux</span><span class="dstat">Files 30–60 min</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Race Through New York Starring Jimmy Fallon</div><div class="declined-park">Universal Studios Florida — New York</div></div>
+          <span class="declined-reason-badge reason-skip">Hors profil</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Simulateur de course contre Jimmy Fallon à travers New York, la Lune et l'intérieur d'un corps humain. Technologie similaire à Simpsons. L'attraction est connue pour son système de boarding par heure réservée (pas de file traditionnelle) — mais l'expérience elle-même est jugée très moyenne. Aucune pertinence narrative ou émotionnelle pour votre famille.</div>
+          <div class="declined-stats"><span class="dstat">40 po requis</span><span class="dstat">Simulateur dôme</span><span class="dstat">Boarding par réservation horaire</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">E.T. Adventure</div><div class="declined-park">Universal Studios Florida</div></div>
+          <span class="declined-reason-badge reason-skip">Classique daté</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Dark ride de 1990 — vous aidez E.T. à rentrer sur sa planète sur un vélo volant. Attraction originale de l'ouverture du parc, nostalgique pour les parents des années 80. Mais exactement le type d'attraction que vous avez dit vouloir éviter — trop vieux, pas de technologie moderne, animatroniques simples. Vous préférez les trucs récents et 3D. Exclu explicitement.</div>
+          <div class="declined-stats"><span class="dstat">Ouvert 1990</span><span class="dstat">Aucune 3D ni technologie moderne</span><span class="dstat">Exclu sur demande explicite</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Horror Make-Up Show</div><div class="declined-park">Universal Studios Florida</div></div>
+          <span class="declined-reason-badge reason-ferme">Fermé depuis jan 2026</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Show de démonstration de maquillage cinématographique live — acteurs transformés en monstres en direct, humour et effets spéciaux expliqués. Populaire et divertissant. Fermé le 4 janvier 2026 pour réimagination complète. Aucune date de réouverture confirmée. Ne sera pas disponible lors de votre visite du 4 avril.</div>
+          <div class="declined-stats"><span class="dstat">Fermé jan 2026</span><span class="dstat">Réouverture date inconnue</span><span class="dstat">Version réimaginée annoncée</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">DreamWorks Trollercoaster</div><div class="declined-park">Universal Studios Florida — DreamWorks Land</div></div>
+          <span class="declined-reason-badge reason-skip">Coaster junior</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Coaster junior rethématisé Trolls — une montée, quelques virages, 45 secondes. Conçu pour les premiers coasters des jeunes enfants. Albert (7 ans) fait déjà Hagrid's, Stardust Racers, Mummy. Ce coaster est bien en dessous de son niveau. Aucun intérêt à inclure.</div>
+          <div class="declined-stats"><span class="dstat">Coaster très doux</span><span class="dstat">45 secondes</span><span class="dstat">Sous le niveau d'Albert</span></div>
+        </div>
+      </div>
+
+      <!-- ── EPIC UNIVERSE ── -->
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Curse of the Werewolf</div><div class="declined-park">Epic Universe — Dark Universe</div></div>
+          <span class="declined-reason-badge reason-motion">Spinning imprévisible</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Coaster spinning dans le village de Darkmoor — votre véhicule tourne librement et de façon imprévisible pendant tout le trajet. Thème Dark Universe avec Le Loup-Garou. C'est exactement le type de mouvement le plus déclencheur pour le mal de cœur — pire que les inversions parce que non prévisible. Albert peut le faire, mais Dragon Racer's Rally offre une version spinning où il contrôle lui-même l'intensité — bien supérieur.</div>
+          <div class="declined-stats"><span class="dstat">48 po requis</span><span class="dstat">Spinning imprévisible</span><span class="dstat">Non disponible en Early Entry</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Constellation Carousel</div><div class="declined-park">Epic Universe — Celestial Park</div></div>
+          <span class="declined-reason-badge reason-skip">Manège familial doux</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Grand carrousel thématisé avec les constellations et la mythologie grecque — magnifiquement conçu visuellement. Mais c'est un carrousel. Albert et Juliette ont dépassé ce type d'attraction. Si vous passez devant en soirée et que la file est nulle, c'est une jolie photo — mais ça ne mérite pas un slot planifié.</div>
+          <div class="declined-stats"><span class="dstat">Carrousel thématisé</span><span class="dstat">Beau visuellement</span><span class="dstat">Pas de file mais sans intérêt majeur</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Yoshi's Adventure</div><div class="declined-park">Epic Universe — Super Nintendo World</div></div>
+          <span class="declined-reason-badge reason-skip">Trop doux pour le profil</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Omnimover ultra-lent dans le Mushroom Kingdom sur un Yoshi — vous cherchez un œuf d'or en passant devant des décors Nintendo colorés. Magnifique visuellement, sans écrans ni simulateur. Conçu pour les tout-petits. Mentionné comme option pour Émilie pendant Mine-Cart Madness — mais pas comme attraction prioritaire pour Albert ou Juliette.</div>
+          <div class="declined-stats"><span class="dstat">Omnimover très doux</span><span class="dstat">Aucune limite de taille</span><span class="dstat">Option Émilie seulement</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Viking Training Camp</div><div class="declined-park">Epic Universe — Isle of Berk</div></div>
+          <span class="declined-reason-badge reason-skip">Zone de jeux enfants</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Zone de jeux thématisée viking — structures à grimper, à escalader, à explorer. Conçue pour les enfants 4–10 ans. Albert et Juliette pourraient apprécier 10-15 min, mais ça ne mérite pas un slot dans un horaire serré. À faire si vous avez une fenêtre libre en attendant un autre manège dans Isle of Berk.</div>
+          <div class="declined-stats"><span class="dstat">Zone de jeux physiques</span><span class="dstat">Pas d'attraction formelle</span><span class="dstat">Si fenêtre libre dans Isle of Berk</span></div>
+        </div>
+      </div>
+
+      <div class="declined-card" onclick="toggleDeclined(this)">
+        <div class="declined-card-top">
+          <div><div class="declined-name">Stardust Racers — version de jour</div><div class="declined-park">Epic Universe — Celestial Park</div></div>
+          <span class="declined-reason-badge reason-skip">Gardé uniquement de nuit</span>
+        </div>
+        <div class="declined-body">
+          <div class="declined-body-text">Coaster dual-launch à 100 km/h — deux trains lancés simultanément sur des rails parallèles dans une "course" cosmique. Aucune inversion. La version de jour a été retirée pour faire de la place à Monsters Unchained et au fountain show. La nuit, les lumières des trains créent l'effet de comètes filant dans un ciel étoilé — expérience radicalement supérieure. Ce n'est pas une coupe, c'est une mise à niveau.</div>
+          <div class="declined-stats"><span class="dstat">48 po requis</span><span class="dstat">100 km/h · 0 inversion</span><span class="dstat">Gardé pour la version de nuit</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-text">Universal Orlando Resort · Famille Gélinas-Martel · 4-5 avril 2026 · Réservation #946504U2 · Surfside Inn &amp; Suites</div>
+</div>
+
+<script>
+  /* ── DATA ── */
+  const searchData = [
+    // Jour 1 — IOA
+    { name:"Hagrid's Magical Creatures Motorbike Adventure", tags:"hagrid motorbike coaster hogsmeade IOA early entry split papa juliette 8h", tab:"j1", desc:"Coaster narratif dans la Forêt Interdite — hippogriffes, centaures, 7 propulsions. Papa+Juliette seulement (Albert trop petit, 54 po requis). À faire dès 8h en Early Entry." },
+    { name:"Flight of the Hippogriff", tags:"hippogriff hogsmeade IOA early entry albert émilie coaster familial", tab:"j1", desc:"Coaster familial doux avec vue sur Poudlard. Albert+Émilie pendant que papa fait Hagrid's. File vide à 8h." },
+    { name:"Hogsmeade — exploration", tags:"hogsmeade butterbeer sorts baguette IOA wizarding world", tab:"j1", desc:"Exploration de Hogsmeade avant les foules. Butterbeer gelé, sorts de baguette, photos du château." },
+    { name:"Skull Island: Reign of Kong", tags:"kong skull island dark ride IOA animatronique express", tab:"j1", desc:"Convoi de 72 personnes dans une jungle préhistorique. Kong animatronique géant. Émilie peut tenter." },
+    { name:"Hogwarts Express", tags:"hogwarts express train park to park USF IOA Émilie", tab:"j1", desc:"Train narratif entre les deux parcs — histoire différente dans chaque sens. Tous ensemble, Émilie OK." },
+    { name:"Harry Potter and the Escape from Gringotts", tags:"gringotts dark ride 3D coaster USF diagon alley express", tab:"j1", desc:"Dark ride hybride — gondole dans Gringotts. 3D + sets géants + feu réel + dragon. Albert OK (42 po)." },
+    { name:"Transformers: The Ride-3D", tags:"transformers 3D simulateur dark ride USF autobots bumblebee optimus albert autos robots express", tab:"j1", desc:"Simulateur 13 écrans HD — Autobots vs Decepticons. Plus intense que Spider-Man. Parfait pour Albert. Émilie avec son livre." },
+    { name:"Diagon Alley — exploration", tags:"diagon alley USF knockturn sorts baguette boutiques", tab:"j1", desc:"Sorts de baguette, Knockturn Alley, Florean Fortescue's Ice Cream. Tous ensemble ~30 min." },
+    { name:"Beat Builders", tags:"beat builders show percussion new york USF david musicien", tab:"j1", desc:"Show de percussion 15 min — style Stomp avec humour. Zone New York." },
+    { name:"The Bourne Stuntacular", tags:"bourne stuntacular show cascades LED USF voitures moto", tab:"j1", desc:"Show cascades live devant écran LED 130 pieds — fusion scène/écran indiscernable. Climatisé, 20 min." },
+    { name:"Revenge of the Mummy", tags:"mummy coaster indoor USF express albert juliette décors égyptiens", tab:"j1", desc:"Coaster indoor dans le noir — accélération surprise + section à reculons. 0 inversion. Albert OK (48 po)." },
+    { name:"Parade du Mardi Gras", tags:"parade mardi gras USF chars perles soirée 19h", tab:"j1", desc:"Parade thématique à 19h — chars illuminés + perles. Inclus dans vos billets. ~45 min." },
+    // Jour 2 — Epic Universe
+    { name:"Harry Potter and the Battle at the Ministry", tags:"battle ministry HP epic universe early entry priorité absolue 3D animatroniques", tab:"j2", desc:"Dark ride #1 mondial. Ascenseurs omnidirectionnels + animatroniques impossibles à distinguer des acteurs. 8h en Early Entry. 40 po — Albert OK." },
+    { name:"Hiccup's Wing Gliders", tags:"wing gliders hiccup coaster isle of berk early entry dragon", tab:"j2", desc:"Coaster suspendu — sensation de vol sur dragon. Early Entry. 39 po — Albert OK." },
+    { name:"Dragon Racer's Rally", tags:"dragon racer rally isle of berk spinning early entry albert famille", tab:"j2", desc:"Manège spinning — levier contrôle intensité. Albert tourne au max. Early Entry." },
+    { name:"Fyre Drill", tags:"fyre drill bataille eau bateau isle of berk famille émilie poncho", tab:"j2", desc:"Bataille d'eau en bateau. Toute la famille incluant Émilie. Prévoir poncho. Early Entry." },
+    { name:"Monsters Unchained: The Frankenstein Experiment", tags:"monsters unchained frankenstein dark ride kuka animatroniques dark universe 9h55", tab:"j2", desc:"Dark ride bras KUKA + 14 animatroniques — zéro écran, zéro inversion. #1 mondial ex-æquo. 9h55 à l'ouverture officielle." },
+    { name:"Mario Kart: Bowser's Challenge", tags:"mario kart bowser nintendo AR réalité augmentée power-up band", tab:"j2", desc:"Dark ride AR — lunettes type casquette Mario, lancez des carapaces. Score lié au Power-Up Band. 40 po — Albert OK." },
+    { name:"Mine-Cart Madness", tags:"mine cart madness donkey kong coaster nintendo", tab:"j2", desc:"Coaster Donkey Kong — effets de saut mécaniques sur rails brisés. 36 po — Albert OK." },
+    { name:"Power-Up Band Challenges", tags:"power up band key challenges bowser jr nintendo", tab:"j2", desc:"5 défis AR dans Nintendo World pour débloquer le combat contre Bowser Jr. Compter 30–45 min." },
+    { name:"Ministry of Magic — exploration", tags:"ministry magic paris 1920 diagon alley sorts boutiques émilie", tab:"j2", desc:"Exploration tranquille de Place Cachée — décor Paris 1920, sorts de baguette, boutiques." },
+    { name:"The Untrainable Dragon", tags:"untrainable dragon show dragons animatroniques toothless hiccup théâtre", tab:"j2", desc:"Show live — dragons animatroniques de la taille d'une voiture. Assis, 30 min, climatisé. Arriver 15 min avant." },
+    { name:"Fountain Show — Celestial Park", tags:"fountain show fontaines son lumières celestial park soirée", tab:"j2", desc:"Show fontaines son et lumières — Apollo/Luna. ~10 min. Plusieurs fois en soirée (17h30, 19h30, 20h20)." },
+    { name:"Stardust Racers — de nuit", tags:"stardust racers coaster nuit célestial park 100kmh dual launch", tab:"j2", desc:"Coaster dual-launch 100 km/h — deux trains simultanés de nuit, effet comètes. 0 inversion. 48 po — Albert OK." },
+    // Repas
+    { name:"Mythos Restaurant", tags:"mythos restaurant IOA dîner repas réservation grotte cascade", tab:"j1", desc:"Restaurant le plus primé du resort — grotte avec cascades, menu méditerranéen. Notre best suggestion Repas 1." },
+    { name:"Fire Eater's Grill", tags:"fire eater grill falafel gyro salade santé IOA lost continent", tab:"j1", desc:"Gemme cachée d'IOA — falafel gyro, Crispy Greens Salad. Très peu achalandé. Option santé Repas 1." },
+    { name:"Three Broomsticks", tags:"three broomsticks hogsmeade IOA great feast HP immersif", tab:"j1", desc:"Salle de banquet HP — poulet rôti, spareribs, Butterbeer. Option simple et immersive Repas 1." },
+    { name:"Finnegan's Bar & Grill", tags:"finnegans bar grill USF new york salmon salad live music parade", tab:"j1", desc:"Pub irlandais avec live music — Pistachio Salmon Salad. Zone New York = position parade idéale. Notre best Repas 2." },
+    { name:"The Leaky Cauldron", tags:"leaky cauldron diagon alley USF toad in the hole HP immersif", tab:"j1", desc:"Pub HP dans Diagon Alley — Toad in the Hole, Cottage Pie. Option immersive Repas 2." },
+    { name:"Mel's Drive-In", tags:"mels drive in USF hollywood cobb salad burger mobile order rapide", tab:"j1", desc:"Diner années 50, mobile order rapide. Option simple Repas 2 avant parade." },
+    { name:"Mead Hall", tags:"mead hall nordic harvest salad thawfest platter isle of berk viking", tab:"j2", desc:"Salle viking 5m — Nordic Harvest Salad with Salmon + Thawfest Platter. Notre best Repas 3." },
+    { name:"Spit Fyre Grill", tags:"spit fyre grill salmon bowl chicken bowl vegan berk isle of berk", tab:"j2", desc:"Counter-service rapide — bowls saumon, poulet, végan. Hiccup's Salmon Bowl. Option simple Repas 3." },
+    { name:"Café L'air de la Sirène", tags:"cafe air sirene quiche lorraine baguette dinde butterbeer crème brûlée ministry magic paris", tab:"j2", desc:"Café français dans Ministry of Magic — Quiche Lorraine, Baguette de Dinde, Butterbeer Crème Brûlée exclusif. Notre best Repas 4." },
+    { name:"Pizza Moon", tags:"pizza moon four à bois celestial park pizza simple", tab:"j2", desc:"Pizzas au four à bois — vue sur Celestial Park illuminé. Option simple Repas 4." },
+    // Déclinées
+    { name:"VelociCoaster", tags:"velocicoaster inversions 4 jurassic IOA declined", tab:"declined", desc:"4 inversions + Albert trop petit (54 po). Exclu." },
+    { name:"The Incredible Hulk Coaster", tags:"hulk coaster 7 inversions IOA declined", tab:"declined", desc:"7 inversions + Albert trop petit. Exclu." },
+    { name:"Harry Potter and the Forbidden Journey", tags:"forbidden journey simulateur mal de coeur hogsmeade IOA declined", tab:"declined", desc:"#1 cause mal de cœur Universal. Exclu pour Émilie." },
+    { name:"The Amazing Adventures of Spider-Man", tags:"spider man dark ride 3D IOA declined remplacé transformers", tab:"declined", desc:"Même technologie que Transformers mais plus vieux (1999). Remplacé." },
+    { name:"Jurassic Park River Adventure", tags:"jurassic park river adventure fermé 2026 IOA declined", tab:"declined", desc:"Fermé jan–nov 2026 pour rénovation." },
+    { name:"The Simpsons Ride", tags:"simpsons ride simulateur IMAX nauséabond USF declined", tab:"declined", desc:"Simulateur IMAX wrap-around — 2e plus nauséabond du resort. Exclu." },
+    { name:"MIB Alien Attack", tags:"MIB men in black laser alien USF declined vieux", tab:"declined", desc:"Technologie datée, sets simples, pas de 3D. Remplacé." },
+    { name:"Curse of the Werewolf", tags:"curse werewolf spinning epic universe dark universe declined", tab:"declined", desc:"Spinning imprévisible — pire pour le mal de cœur. Exclu." },
+    { name:"Stardust Racers de jour", tags:"stardust racers jour declined nuit seulement", tab:"declined", desc:"Gardé uniquement pour la version de nuit." },
+    { name:"E.T. Adventure", tags:"ET adventure classique daté 1990 USF declined", tab:"declined", desc:"Ouvert 1990, aucune technologie moderne. Exclu explicitement." },
+  ];
+
+  /* ── SEARCH ── */
+  const searchInput = document.getElementById('searchInput');
+  const suggestions = document.getElementById('searchSuggestions');
+  const resultsBox = document.getElementById('searchResults');
+
+  searchInput.addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+    suggestions.innerHTML = '';
+    resultsBox.innerHTML = '';
+    if (q.length < 2) { suggestions.style.display='none'; return; }
+
+    const matches = searchData.filter(d =>
+      d.name.toLowerCase().includes(q) ||
+      d.tags.toLowerCase().includes(q)
+    );
+
+    if (matches.length === 0) {
+      suggestions.style.display = 'none';
+      resultsBox.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:12px;">Aucun résultat pour "' + q + '"</div>';
+      return;
+    }
+
+    suggestions.style.display = 'block';
+    matches.slice(0, 8).forEach(m => {
+      const li = document.createElement('li');
+      li.textContent = m.name;
+      li.addEventListener('mousedown', () => {
+        searchInput.value = m.name;
+        suggestions.style.display = 'none';
+        showResult(m);
+      });
+      suggestions.appendChild(li);
+    });
+  });
+
+  searchInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      const q = this.value.trim().toLowerCase();
+      const matches = searchData.filter(d =>
+        d.name.toLowerCase().includes(q) || d.tags.toLowerCase().includes(q)
+      );
+      suggestions.style.display = 'none';
+      if (matches.length === 1) { showResult(matches[0]); return; }
+      showMultiResult(matches, q);
+    }
+    if (e.key === 'Escape') { suggestions.style.display = 'none'; }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.search-container')) suggestions.style.display = 'none';
+  });
+
+  function tabLabel(tab) {
+    if (tab === 'j1') return '📅 Samedi 4 avril';
+    if (tab === 'j2') return '📅 Dimanche 5 avril';
+    return '⛔ Attraction déclinée';
+  }
+
+  function showResult(m) {
+    resultsBox.innerHTML = `
+      <div class="search-result-card">
+        <div class="sr-tab">${tabLabel(m.tab)}</div>
+        <div class="sr-name">${m.name}</div>
+        <div class="sr-desc">${m.desc}</div>
+        <button class="sr-goto" onclick="switchTab('${m.tab}')">Aller à cet onglet →</button>
+      </div>`;
+  }
+
+  function showMultiResult(matches, q) {
+    if (matches.length === 0) {
+      resultsBox.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:12px;">Aucun résultat.</div>';
+      return;
+    }
+    resultsBox.innerHTML = matches.slice(0, 6).map(m => `
+      <div class="search-result-card" onclick="switchTab('${m.tab}')" style="cursor:pointer;">
+        <div class="sr-tab">${tabLabel(m.tab)}</div>
+        <div class="sr-name">${m.name}</div>
+        <div class="sr-desc">${m.desc}</div>
+      </div>`).join('');
+  }
+
+  /* ── TOGGLE ── */
+  function toggleItem(el) {
+    el.classList.toggle('open');
+    const panel = el.nextElementSibling;
+    if (panel && panel.classList.contains('detail-panel')) panel.classList.toggle('open');
+  }
+
+  function toggleResto(el) {
+    const detail = el.nextElementSibling;
+    if (!detail || !detail.classList.contains('resto-detail')) return;
+    const wasOpen = detail.classList.contains('open');
+    el.closest('.resto-options').querySelectorAll('.resto-detail').forEach(d => d.classList.remove('open'));
+    if (!wasOpen) detail.classList.add('open');
+  }
+
+  function toggleDeclined(el) {
+    el.classList.toggle('open');
+    const body = el.querySelector('.declined-body');
+    if (body) body.classList.toggle('open');
+  }
+
+  function switchTab(id) {
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    const btns = document.querySelectorAll('.tab-btn');
+    const map = { j1: 0, j2: 1, declined: 2 };
+    btns[map[id]].classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
 
       <div class="declined-card" onclick="toggleDeclined(this)">
         <div class="declined-card-top">
@@ -1047,12 +1592,12 @@
 
       <div class="declined-card" onclick="toggleDeclined(this)">
         <div class="declined-card-top">
-          <div><div class="declined-name">Stardust Racers (matin)</div><div class="declined-park">Epic Universe — Celestial Park</div></div>
-          <span class="declined-reason-badge reason-skip">Réservé pour la nuit</span>
+          <div><div class="declined-name">Stardust Racers — version de jour</div><div class="declined-park">Epic Universe — Celestial Park</div></div>
+          <span class="declined-reason-badge reason-skip">Gardé uniquement de nuit</span>
         </div>
         <div class="declined-body">
-          <div class="declined-body-text">Stardust Racers est dans votre plan — mais délibérément réservé pour la soirée. La nuit, avec tout le parc illuminé sous vous et les fontaines visibles, c'est une expérience radicalement différente. De plus, Stardust Racers n'est plus dans l'Early Entry depuis février 2026 — il ouvre à 9 h avec le reste du public. Votre Early Entry est bien mieux utilisé sur Battle at the Ministry et Wing Gliders.</div>
-          <div class="declined-stats"><span class="dstat">Prévu en soirée</span><span class="dstat">Expérience nocturne unique</span><span class="dstat">Plus en Early Entry depuis fév. 2026</span></div>
+          <div class="declined-body-text">Stardust Racers est dans votre plan — mais exclusivement réservé pour la soirée après 18 h. La version de jour a été retirée pour faire de la place à Monsters Unchained et au fountain show. La nuit, les lumières à bord des trains créent l'effet de comètes filant dans la nuit avec le parc illuminé dessous — expérience radicalement supérieure à la version de jour. Ce n'est pas une perte : c'est une mise à niveau.</div>
+          <div class="declined-stats"><span class="dstat">Gardé pour la soirée</span><span class="dstat">Expérience nocturne supérieure</span><span class="dstat">Libère du temps pour Monsters Unchained</span></div>
         </div>
       </div>
 
